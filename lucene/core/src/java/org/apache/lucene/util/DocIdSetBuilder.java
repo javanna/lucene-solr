@@ -171,12 +171,12 @@ public final class DocIdSetBuilder {
    */
   public BulkAdder grow(int numDocs) {
     if (bitSet == null) {
-      if ((long) totalAllocated + numDocs <= threshold) {
+      //if ((long) totalAllocated + numDocs <= threshold) {
         ensureBufferCapacity(numDocs);
-      } else {
+      /*} else {
         upgradeToBitSet();
         counter += numDocs;
-      }
+      }*/
     } else {
       counter += numDocs;
     }
@@ -212,7 +212,7 @@ public final class DocIdSetBuilder {
     // avoid cold starts
     c = Math.max(32, c);
     // do not go beyond the threshold
-    c = Math.min(threshold - totalAllocated, c);
+    //c = Math.min(threshold - totalAllocated, c);
     return c;
   }
 
@@ -227,24 +227,6 @@ public final class DocIdSetBuilder {
   private void growBuffer(Buffer buffer, int additionalCapacity) {
     buffer.array = ArrayUtil.growExact(buffer.array, buffer.array.length + additionalCapacity);
     totalAllocated += additionalCapacity;
-  }
-
-  private void upgradeToBitSet() {
-    assert bitSet == null;
-    FixedBitSet bitSet = new FixedBitSet(maxDoc);
-    long counter = 0;
-    for (Buffer buffer : buffers) {
-      int[] array = buffer.array;
-      int length = buffer.length;
-      counter += length;
-      for (int i = 0; i < length; ++i) {
-        bitSet.set(array[i]);
-      }
-    }
-    this.bitSet = bitSet;
-    this.counter = counter;
-    this.buffers = null;
-    this.adder = new FixedBitSetAdder(bitSet);
   }
 
   /**
